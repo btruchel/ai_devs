@@ -1,16 +1,19 @@
-import { Moderation, ModerationCreateResponse } from "openai/resources/moderations"
-import { operAI } from "../utils/utils"
+import { Moderation } from "openai/resources/moderations"
+import { openAIUtils } from "../utils/utils"
 import { Answer, TaskResponseData } from "../types"
 
 export interface ModerationData extends TaskResponseData { input: string[] }
 export interface ModerationAnswer extends Answer { answer: number[] }
+
+const { moderation } = openAIUtils()
 
 export async function handler(data: ModerationData ): Promise<ModerationAnswer | void> {
   if (!data.input) { 
     console.log('no input :(')
     return  
   }
-  const { results }: ModerationCreateResponse = await operAI.moderations.create({ input: data.input })
+
+  const results = await moderation(data.input)
   return { answer: results.map(isFlagged) }
 }
 

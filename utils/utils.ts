@@ -1,33 +1,72 @@
 import * as fs from 'fs/promises'
 import { config } from "../config"
 import OpenAI from 'openai'
-import { Answer, Handler, TaskResponse, TaskResponseData } from "../types"
+import { Answer, TaskImport, TaskResponse, TaskResponseData } from "../types"
+import axios from 'axios'
+import { ModerationCreateResponse } from 'openai/resources/moderations'
+import { ChatCompletionCreateParamsBase, ChatCompletionSystemMessageParam, ChatCompletionUserMessageParam } from 'openai/resources/chat/completions'
 
-export function aiDevApiUtils(axios) {
+export function aiDevApiUtils() {
   async function getToken(taskName: string): Promise<string> {
     const { data } = await axios.post(`${config.baseUrl}/token/${taskName}`, { apikey: config.apiKey })
     return data.token
   }
 
-  async function getTaskDescription(token: string): Promise<TaskResponseData> {
+  async function getTaskDescription(taskName: string): Promise<{ data: TaskResponseData, token: string }> {
+    const token = await getToken(taskName)
     const { data }: TaskResponse = await axios.get(`${config.baseUrl}/task/${token}`)
     console.log(data)
-    return data
+    return { data, token }
   }
 
   async function submitAnswer(token: string, answer: Answer): Promise<void> {
     const { data } = await axios.post(`${config.baseUrl}/answer/${token}`, answer)
     console.log(data)
   }
-  return { getToken, getTaskDescription, submitAnswer }
+
+  async function postForAdditionalData(token: string, additionalData: { [key: string]: string }): Promise<any> {
+    const { data }: TaskResponse = await axios.post(`${config.baseUrl}/task/${token}`, additionalData, { headers: { 'Content-Type': 'multipart/form-data' } })
+    console.log(data)
+    return data
+  }
+  return { getTaskDescription, submitAnswer, postForAdditionalData }
 }
 
-export async function getTaskImplementation(taskName: string): Promise<Handler | void> {
+export async function getTaskImplementation(taskName: string): Promise<TaskImport | void> {
   const tasks = await fs.readdir("./tasks")
   if (!tasks.includes(`${taskName}.ts`)) return
 
-  const { handler }: { handler: Handler } = require(`../tasks/${taskName}`)
-  return handler
+  const { handler, additionalStep }: TaskImport = require(`../tasks/${taskName}`)
+  return { handler, additionalStep }
 }
 
-export const operAI = new OpenAI({ apiKey: config.openAIapiKey })
+export function openAIUtils() {
+  const openAI = new OpenAI({ apiKey: config.openAIapiKey })
+  async function moderation(input: string[]) {
+    const { results }: ModerationCreateResponse = await openAI.moderations.create({ input })
+    return results
+  }
+
+  async function chatCompletion(systemPrompt: string, userPrompts: string, model: ChatCompletionCreateParamsBase["model"]) {
+    const systemMessage: ChatCompletionSystemMessageParam = {
+      role: 'system',
+      content: systemPrompt
+    }
+    const userMessage: ChatCompletionUserMessageParam = {
+      role: 'user',
+      content: userPrompts
+    }
+    return openAI.chat.completions.create({ messages: [systemMessage, userMessage], model })
+  }
+
+  async function gpt35_completion(systemPrompt: string, userPrompts: string): Promise<string> {
+    const completion = await chatCompletion(systemPrompt, userPrompts, 'gpt-3.5-turbo',)
+    return completion.choices[0].message.content || ''
+  }
+
+  async function gpt4_completion(systemPrompt: string, userPrompts: string): Promise<string> {
+    const completion = await chatCompletion(systemPrompt, userPrompts, 'gpt-4',)
+    return completion.choices[0].message.content || ''
+  }
+  return { moderation, gpt35_completion, gpt4_completion }
+}

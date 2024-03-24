@@ -1,20 +1,20 @@
-import * as axios from 'axios'
 import { getTaskImplementation, aiDevApiUtils } from './utils/utils'
 
 
-const { getTaskDescription, submitAnswer, getToken } = aiDevApiUtils(axios)
+const { getTaskDescription, submitAnswer } = aiDevApiUtils()
 async function main() {
     const taskName = process.argv[2]
-    const taskHandler = await getTaskImplementation(taskName)
+    const { handler: taskHandler, additionalStep } = (await getTaskImplementation(taskName)) || {}
     if (!taskHandler) {
         console.log('task not implemented')
         return
     }
 
-    const token = await getToken(taskName)
-    const data = await getTaskDescription(token)
-    const answer = await taskHandler(data)
-    
+    const { data, token } = await getTaskDescription(taskName)
+    const answer = await (additionalStep 
+        ? additionalStep(token).then(taskHandler) 
+        : taskHandler(data)
+    )
     if (answer) {
         await submitAnswer(token, answer)
     }
