@@ -68,5 +68,14 @@ export function openAIUtils() {
     const completion = await chatCompletion(systemPrompt, userPrompts, 'gpt-4',)
     return completion.choices[0].message.content || ''
   }
-  return { moderation, gpt35_completion, gpt4_completion }
+
+  async function embedding(input: string): Promise<OpenAI.Embeddings.Embedding[]> {
+    const body: OpenAI.Embeddings.EmbeddingCreateParams = {
+      model: 'text-embedding-ada-002',
+      input
+    }
+    const result: OpenAI.Embeddings.CreateEmbeddingResponse = await openAI.embeddings.create(body)
+    return result.data
+  }
+  return { moderation, gpt35_completion, gpt4_completion, embedding }
 }
