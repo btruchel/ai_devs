@@ -5,6 +5,7 @@ import { Answer, TaskImport, TaskResponse, TaskResponseData } from "../types"
 import axios from 'axios'
 import { ModerationCreateResponse } from 'openai/resources/moderations'
 import { ChatCompletionCreateParamsBase, ChatCompletionSystemMessageParam, ChatCompletionUserMessageParam } from 'openai/resources/chat/completions'
+import { Uploadable } from 'openai/uploads'
 
 export function aiDevApiUtils() {
   async function getToken(taskName: string): Promise<string> {
@@ -29,8 +30,16 @@ export function aiDevApiUtils() {
     console.log(data)
     return data
   }
-  return { getTaskDescription, submitAnswer, postForAdditionalData }
+
+  async function downloadFile(filename: string, destination: string): Promise<void> {
+    const response = await axios.get(`${config.baseUrl}/data/${filename}`, { responseType: 'arraybuffer' })
+    const buffer = Buffer.from(response.data, 'binary')
+    await fs.writeFile(destination, buffer)
+    console.log('file downloaded successfully!')
+  }
+  return { getTaskDescription, submitAnswer, postForAdditionalData, downloadFile }
 }
+
 
 export async function getTaskImplementation(taskName: string): Promise<TaskImport | void> {
   const tasks = await fs.readdir("./tasks")
@@ -77,5 +86,10 @@ export function openAIUtils() {
     const result: OpenAI.Embeddings.CreateEmbeddingResponse = await openAI.embeddings.create(body)
     return result.data
   }
-  return { moderation, gpt35_completion, gpt4_completion, embedding }
+
+  async function transcribe(file: Uploadable): Promise<string> {
+    const transcription: OpenAI.Audio.Transcriptions.Transcription = await openAI.audio.transcriptions.create({ model: 'whisper-1', file })
+    return transcription.text
+  }
+  return { moderation, gpt35_completion, gpt4_completion, embedding, transcribe }
 }
