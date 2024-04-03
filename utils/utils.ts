@@ -41,6 +41,7 @@ export function aiDevApiUtils() {
     try {
       result = await axios.get(url, config)
     } catch ({ response }) {
+      console.log({ status: response.status, data: response.data })
       result = { status: response.status, data: response.data }
     }
     
@@ -48,7 +49,7 @@ export function aiDevApiUtils() {
       return result.data
     }
     await wait(500 * retryCount)
-    return getAdditionalFile(url, retryCount + 1)
+    return getAdditionalFile(url, config, retryCount + 1)
   }
 
   async function downloadFile(filename: string, destination: string): Promise<void> {
