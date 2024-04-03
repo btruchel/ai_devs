@@ -31,13 +31,33 @@ export function aiDevApiUtils() {
     return data
   }
 
+  async function getAdditionalFile(url, config, retryCount = 0) {
+    console.log('retryCount', retryCount)
+    if (retryCount > 10) {
+      console.log('unable to get file')
+      return
+    }
+    let result
+    try {
+      result = await axios.get(url, config)
+    } catch ({ response }) {
+      result = { status: response.status, data: response.data }
+    }
+    
+    if (result.status === 200) {
+      return result.data
+    }
+    await wait(500 * retryCount)
+    return getAdditionalFile(url, retryCount + 1)
+  }
+
   async function downloadFile(filename: string, destination: string): Promise<void> {
     const response = await axios.get(`${config.baseUrl}/data/${filename}`, { responseType: 'arraybuffer' })
     const buffer = Buffer.from(response.data, 'binary')
     await fs.writeFile(destination, buffer)
     console.log('file downloaded successfully!')
   }
-  return { getTaskDescription, submitAnswer, postForAdditionalData, downloadFile }
+  return { getTaskDescription, submitAnswer, postForAdditionalData, downloadFile, getAdditionalFile }
 }
 
 
@@ -92,4 +112,8 @@ export function openAIUtils() {
     return transcription.text
   }
   return { moderation, gpt35_completion, gpt4_completion, embedding, transcribe }
+}
+
+export function wait(delay: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, delay))
 }
