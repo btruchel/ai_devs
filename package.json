@@ -17,9 +17,11 @@
     "typescript": "^5.4.3"
   },
   "dependencies": {
+    "@qdrant/qdrant-js": "^1.8.1",
     "axios": "^1.6.8",
     "dotenv": "^16.4.5",
     "openai": "^4.29.2",
-    "ts-node": "^10.9.2"
+    "ts-node": "^10.9.2",
+    "uuid": "^9.0.1"
   }
 }

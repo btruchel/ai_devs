@@ -24,10 +24,10 @@ export function aiDevApiUtils() {
       const { data }: TaskResponse = await axios.post(`${config.baseUrl}/answer/${token}`, answer)
       showMessage(data)
     } catch (error) {
-      console.log(error.response.code, error.response.data, )
+      console.log(error.response.code, error.response.data,)
     }
-    
-    
+
+
   }
 
   async function postForAdditionalData(token: string, additionalData: { [key: string]: string }): Promise<any> {
@@ -37,7 +37,7 @@ export function aiDevApiUtils() {
   }
 
   function showMessage(data: TaskResponseData): void {
-    const {code, msg, ...rest } = data
+    const { code, msg, ...rest } = data
     console.log(`
       Code: ${code}
       Message: ${msg}
@@ -46,7 +46,6 @@ export function aiDevApiUtils() {
   }
 
   async function getAdditionalFile(url, config, retryCount = 0) {
-    console.log('retryCount', retryCount)
     if (retryCount > 10) {
       console.log('unable to get file')
       return
@@ -58,7 +57,7 @@ export function aiDevApiUtils() {
       console.log({ status: response.status, data: response.data })
       result = { status: response.status, data: response.data }
     }
-    
+
     if (result.status === 200) {
       return result.data
     }
@@ -74,7 +73,6 @@ export function aiDevApiUtils() {
   }
   return { getTaskDescription, submitAnswer, postForAdditionalData, downloadFile, getAdditionalFile, showMessage }
 }
-
 
 export async function getTaskImplementation(taskName: string): Promise<TaskImport | void> {
   const tasks = await fs.readdir("./tasks")
