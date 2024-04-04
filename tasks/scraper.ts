@@ -1,7 +1,7 @@
 import { Answer, TaskResponseData } from "../types"
 import { aiDevApiUtils, openAIUtils } from "../utils/utils"
 
-export interface ScraperData extends TaskResponseData { input: string, question: string }
+export type ScraperData = TaskResponseData & { input: string, question: string }
 export interface ScraperAnswer extends Answer { answer: string }
 
 const { getAdditionalFile } = aiDevApiUtils()

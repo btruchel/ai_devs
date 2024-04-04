@@ -21,8 +21,14 @@ export function aiDevApiUtils() {
   }
 
   async function submitAnswer(token: string, answer: Answer): Promise<void> {
-    const { data } = await axios.post(`${config.baseUrl}/answer/${token}`, answer)
-    console.log(data)
+    try {
+      const { data } = await axios.post(`${config.baseUrl}/answer/${token}`, answer)
+      console.log(data)
+    } catch (error) {
+      console.log(error.response.code, error.response.data, )
+    }
+    
+    
   }
 
   async function postForAdditionalData(token: string, additionalData: { [key: string]: string }): Promise<any> {

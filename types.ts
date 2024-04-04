@@ -5,5 +5,5 @@ export type AdditionalStep = (token: string) => Promise<TaskResponseData>
 export type TaskResponse = { data: TaskResponseData }
 
 
-export interface TaskResponseData { code: number, msg: string }
+export type TaskResponseData = { code: number, msg: string} & { [key: string]: string }
 export interface Answer { answer: unknown }

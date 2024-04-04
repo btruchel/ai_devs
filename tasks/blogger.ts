@@ -1,7 +1,7 @@
 import { Answer, TaskResponseData } from "../types"
 import { openAIUtils } from "../utils/utils"
 
-export interface BloggerResponseData extends TaskResponseData { blog: string[] }
+export type BloggerResponseData = TaskResponseData & { blog: string[] }
 export interface BloggerAnswer extends Answer { answer: BlogPost[] }
 type BlogPost = string
 

@@ -1,7 +1,7 @@
 import { Answer, TaskResponseData } from "../types"
 import { openAIUtils } from "../utils/utils"
 
-export interface InpromptData extends TaskResponseData { input: string[], question: string }
+export type InpromptData = TaskResponseData & { input: string[], question: string }
 export interface InpromptAnswer extends Answer { answer: string }
 
 const { gpt35_completion } = openAIUtils()

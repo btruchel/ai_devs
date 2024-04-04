@@ -1,6 +1,6 @@
 import { Answer, TaskResponseData } from "../types"
 
-export interface HelloApiData extends TaskResponseData { cookie: string }
+export type HelloApiData = TaskResponseData & { cookie: string }
 export interface HelloApiAnswer extends Answer { answer: string }
 
 export async function handler(data: HelloApiData): Promise<HelloApiAnswer | void> {

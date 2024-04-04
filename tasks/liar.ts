@@ -1,7 +1,7 @@
 import { Answer, TaskResponseData } from "../types"
 import { aiDevApiUtils, openAIUtils } from "../utils/utils"
 
-export interface LiarData extends TaskResponseData { question, answer }
+export type LiarData = TaskResponseData & { question: string, answer: string }
 export interface LiarAnswer extends Answer { answer: string }
 
 const { postForAdditionalData } = aiDevApiUtils()
