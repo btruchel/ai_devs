@@ -4,29 +4,37 @@ import { aiDevApiUtils, openAIUtils, wait } from "../utils/utils"
 export type WhoAmIData = TaskResponseData & { hint: string }
 export interface WhoAmIAnswer extends Answer { answer: string }
 
-const { gpt4_completion } = openAIUtils()
+const { gpt35_completion } = openAIUtils()
 const { getTaskDescription  } = aiDevApiUtils()
 export async function handler(data: WhoAmIData): Promise<WhoAmIAnswer | void> {
-  const systemPromptFn = (_hints) => `You are very good at Trivia games. 
-  You are taking part in a trivia quiz.
-  Based on the given hints, guess the name of the famous person. 
-  If you are not certain about the person, ask for a hint.
-  if you are sure just answer.
-  Respond in json format
-    ### examples
-     { 
-      "hint": true, 
-    }
-      or
-    { "answer": "John Lennon"}
+  const systemPrompt = `
+  Name one famous person fitting the provided description.
+  If you are not sure (under 80% sure) ask for additional data
+  respond in JSON format
 
-  ### hints
-  ${_hints.join("\n")}
+  ### examples
+  user:
+  'played in the beatles'
+  response:
+  {  "hint": true }
+
+  user:
+  'played in the beatles'
+  'he had long hair'
+  response:
+  {  "hint": true }
+
+  user:
+  'played in the beatles'
+  'he had long hair'
+  'was married to yoko ono'
+  response:
+  { "answer": "John Lennon"}
   `
   let triesLeft = 10
   let hints = [data.hint]
   while (triesLeft) {
-    const response = await gpt4_completion(systemPromptFn(hints), 'Do you know the answer or do you need a hint?')
+    const response = await gpt35_completion(systemPrompt, hints.join("\n"))
     let jsonResponse
     try {
       jsonResponse = JSON.parse(response)

@@ -16,14 +16,13 @@ export function aiDevApiUtils() {
   async function getTaskDescription(taskName: string): Promise<{ data: TaskResponseData, token: string }> {
     const token = await getToken(taskName)
     const { data }: TaskResponse = await axios.get(`${config.baseUrl}/task/${token}`)
-    console.log(data)
     return { data, token }
   }
 
   async function submitAnswer(token: string, answer: Answer): Promise<void> {
     try {
-      const { data } = await axios.post(`${config.baseUrl}/answer/${token}`, answer)
-      console.log(data)
+      const { data }: TaskResponse = await axios.post(`${config.baseUrl}/answer/${token}`, answer)
+      showMessage(data)
     } catch (error) {
       console.log(error.response.code, error.response.data, )
     }
@@ -35,6 +34,15 @@ export function aiDevApiUtils() {
     const { data }: TaskResponse = await axios.post(`${config.baseUrl}/task/${token}`, additionalData, { headers: { 'Content-Type': 'multipart/form-data' } })
     console.log(data)
     return data
+  }
+
+  function showMessage(data: TaskResponseData): void {
+    const {code, msg, ...rest } = data
+    console.log(`
+      Code: ${code}
+      Message: ${msg}
+      Other Data: ${JSON.stringify(rest)}
+    `)
   }
 
   async function getAdditionalFile(url, config, retryCount = 0) {
@@ -64,7 +72,7 @@ export function aiDevApiUtils() {
     await fs.writeFile(destination, buffer)
     console.log('file downloaded successfully!')
   }
-  return { getTaskDescription, submitAnswer, postForAdditionalData, downloadFile, getAdditionalFile }
+  return { getTaskDescription, submitAnswer, postForAdditionalData, downloadFile, getAdditionalFile, showMessage }
 }
 
 
