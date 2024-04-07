@@ -130,3 +130,14 @@ export function openAIUtils() {
 export function wait(delay: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, delay))
 }
+
+
+export function splitEvery<T>(n: number, items: T[]): Array<T[]> {
+  const result: Array<T[]> = []
+  let idx = 0;
+
+  while (idx < items.length) {
+    result.push(items.slice(idx, idx += n));
+  }
+  return result
+}

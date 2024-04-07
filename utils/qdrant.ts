@@ -29,12 +29,6 @@ export function qdrantDb() {
             })
             await Promise.all(indexes.map(params => client.createPayloadIndex(collectionName, { ...params, wait: true })))
         }
-        console.log('all set up')
-    }
-
-    async function isCollectionEmpty(collectionName: string): Promise<boolean> {
-        const collection = await client.getCollection(collectionName);
-        return !!collection && collection.points_count === 0 
     }
 
     async function insertMany<T extends { [key: string]: unknown }>(collectionName, points: QdrantPoint<T>[]) {
@@ -58,5 +52,5 @@ export function qdrantDb() {
         return uuidv5(payload[field], collectionSeed)
     }
 
-    return { setUpCollection, insertMany, prepareUUID, checkPointsExist, searchCollection, isCollectionEmpty }
+    return { setUpCollection, insertMany, prepareUUID, checkPointsExist, searchCollection }
 }
