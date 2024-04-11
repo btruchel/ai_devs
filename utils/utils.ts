@@ -4,7 +4,7 @@ import OpenAI from 'openai'
 import { Answer, TaskImport, TaskResponse, TaskResponseData } from "../types"
 import axios from 'axios'
 import { ModerationCreateResponse } from 'openai/resources/moderations'
-import { ChatCompletionCreateParamsBase, ChatCompletionSystemMessageParam, ChatCompletionTool, ChatCompletionUserMessageParam } from 'openai/resources/chat/completions'
+import { ChatCompletionContentPart, ChatCompletionCreateParamsBase, ChatCompletionSystemMessageParam, ChatCompletionTool, ChatCompletionUserMessageParam } from 'openai/resources/chat/completions'
 import { Uploadable } from 'openai/uploads'
 import { FunctionDefinition } from 'openai/resources'
 
@@ -89,8 +89,7 @@ export function openAIUtils() {
     const { results }: ModerationCreateResponse = await openAI.moderations.create({ input })
     return results
   }
-
-  async function chatCompletion(systemPrompt: string, userPrompts: string, model: ChatCompletionCreateParamsBase["model"]) {
+  async function chatCompletion(systemPrompt: string, userPrompts: ChatCompletionUserMessageParam["content"], model: ChatCompletionCreateParamsBase["model"]) {
     const systemMessage: ChatCompletionSystemMessageParam = {
       role: 'system',
       content: systemPrompt
@@ -128,6 +127,15 @@ export function openAIUtils() {
     return calledTool.function
   }
 
+  async function vision(systemPrompt: string, userPrompt: string, imageUrl: string) {
+    const userPrompts: ChatCompletionContentPart[] = [
+      { type: 'text', text: userPrompt },
+      { type: 'image_url', image_url: { url: imageUrl } }
+    ]
+    const completion = await chatCompletion(systemPrompt, userPrompts, 'gpt-4-turbo')
+    return completion.choices[0].message.content || ''
+  }
+
   async function embedding(input: string): Promise<OpenAI.Embeddings.Embedding[]> {
     const body: OpenAI.Embeddings.EmbeddingCreateParams = {
       model: 'text-embedding-ada-002',
@@ -142,7 +150,7 @@ export function openAIUtils() {
     return transcription.text
   }
 
-  return { moderation, gpt35_completion, gpt4_completion, embedding, transcribe, gpt35_with_tools }
+  return { moderation, gpt35_completion, gpt4_completion, embedding, transcribe, gpt35_with_tools, vision }
 }
 
 export function wait(delay: number): Promise<void> {
@@ -160,7 +168,7 @@ export function splitEvery<T>(n: number, items: T[]): Array<T[]> {
   return result
 }
 
-export function parseJSONResponse<T>(response: string): T | null  {
+export function parseJSONResponse<T>(response: string): T | null {
   try {
     return JSON.parse(response) as T
   } catch (error) {
