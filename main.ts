@@ -12,8 +12,8 @@ async function main() {
 
     const { data, token } = await getTaskDescription(taskName)
     showMessage(data)
-    const answer = await (additionalStep 
-        ? additionalStep(token).then(taskHandler) 
+    const answer = await (additionalStep
+        ? additionalStep(token).then(taskHandler)
         : taskHandler(data)
     )
     if (answer) {
