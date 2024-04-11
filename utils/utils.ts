@@ -141,3 +141,12 @@ export function splitEvery<T>(n: number, items: T[]): Array<T[]> {
   }
   return result
 }
+
+export function parseJSONResponse<T>(response: string): T | null  {
+  try {
+    return JSON.parse(response) as T
+  } catch (error) {
+    console.log(error)
+    return null
+  }
+}
