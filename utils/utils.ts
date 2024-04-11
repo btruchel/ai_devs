@@ -4,8 +4,9 @@ import OpenAI from 'openai'
 import { Answer, TaskImport, TaskResponse, TaskResponseData } from "../types"
 import axios from 'axios'
 import { ModerationCreateResponse } from 'openai/resources/moderations'
-import { ChatCompletionCreateParamsBase, ChatCompletionSystemMessageParam, ChatCompletionUserMessageParam } from 'openai/resources/chat/completions'
+import { ChatCompletionCreateParamsBase, ChatCompletionSystemMessageParam, ChatCompletionTool, ChatCompletionUserMessageParam } from 'openai/resources/chat/completions'
 import { Uploadable } from 'openai/uploads'
+import { FunctionDefinition } from 'openai/resources'
 
 export function aiDevApiUtils() {
   async function getToken(taskName: string): Promise<string> {
@@ -111,6 +112,22 @@ export function openAIUtils() {
     return completion.choices[0].message.content || ''
   }
 
+  async function gpt35_with_tools(systemPrompt: string, userPrompt: string, functions: FunctionDefinition[]) {
+    const systemMessage: ChatCompletionSystemMessageParam = {
+      role: 'system',
+      content: systemPrompt
+    }
+    const userMessage: ChatCompletionUserMessageParam = {
+      role: 'user',
+      content: userPrompt
+    }
+    const tools: ChatCompletionTool[] = functions.map((definition) => ({ type: 'function', function: definition }))
+
+    const completion = await openAI.chat.completions.create({ messages: [systemMessage, userMessage], model: 'gpt-3.5-turbo-0125', tools })
+    const calledTool = (completion.choices[0].message.tool_calls || [])[0]
+    return calledTool.function
+  }
+
   async function embedding(input: string): Promise<OpenAI.Embeddings.Embedding[]> {
     const body: OpenAI.Embeddings.EmbeddingCreateParams = {
       model: 'text-embedding-ada-002',
@@ -124,7 +141,8 @@ export function openAIUtils() {
     const transcription: OpenAI.Audio.Transcriptions.Transcription = await openAI.audio.transcriptions.create({ model: 'whisper-1', file })
     return transcription.text
   }
-  return { moderation, gpt35_completion, gpt4_completion, embedding, transcribe }
+
+  return { moderation, gpt35_completion, gpt4_completion, embedding, transcribe, gpt35_with_tools }
 }
 
 export function wait(delay: number): Promise<void> {
