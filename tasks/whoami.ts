@@ -1,11 +1,11 @@
 import { Answer, TaskResponseData } from "../types"
-import { aiDevApiUtils, openAIUtils, wait } from "../utils/utils"
+import { aiDevApiUtils, openAIUtils, parseJSONResponse, wait } from "../utils/utils"
 
 export type WhoAmIData = TaskResponseData & { hint: string }
 export interface WhoAmIAnswer extends Answer { answer: string }
 
 const { gpt35_completion } = openAIUtils()
-const { getTaskDescription  } = aiDevApiUtils()
+const { getTaskDescription } = aiDevApiUtils()
 export async function handler(data: WhoAmIData): Promise<WhoAmIAnswer | void> {
   const systemPrompt = `
   Name one famous person fitting the provided description.
@@ -35,26 +35,22 @@ export async function handler(data: WhoAmIData): Promise<WhoAmIAnswer | void> {
   let hints = [data.hint]
   while (triesLeft) {
     const response = await gpt35_completion(systemPrompt, hints.join("\n"))
-    let jsonResponse
-    try {
-      jsonResponse = JSON.parse(response)
-      if (jsonResponse.hint) {
+    const parsed = parseJSONResponse<{ hint: string } & { answer: string }>(response)
+    if (parsed) {
+      if (parsed.hint) {
         hints = await getNewHints(hints)
         console.log(hints)
-        triesLeft--
       }
-      if (jsonResponse.answer) {
-        return { answer: jsonResponse.answer }
+      if (parsed.answer) {
+        return { answer: parsed.answer }
       }
-    } catch (error) {
-      console.log(error)
-      triesLeft--
     }
+    triesLeft--
   }
-
   console.log('to stupid')
   return
 }
+
 async function getNewHints(currentHints: string[]): Promise<string[]> {
   await wait(3000)
   const hints = new Set(currentHints)
