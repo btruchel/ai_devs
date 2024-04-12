@@ -7,6 +7,9 @@ import { ModerationCreateResponse } from 'openai/resources/moderations'
 import { ChatCompletionContentPart, ChatCompletionCreateParamsBase, ChatCompletionSystemMessageParam, ChatCompletionTool, ChatCompletionUserMessageParam } from 'openai/resources/chat/completions'
 import { Uploadable } from 'openai/uploads'
 import { FunctionDefinition } from 'openai/resources'
+import express, { Express } from "express"
+import { Server } from 'http'
+const ngrok = require('ngrok')
 
 export function aiDevApiUtils() {
   async function getToken(taskName: string): Promise<string> {
@@ -157,7 +160,6 @@ export function wait(delay: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, delay))
 }
 
-
 export function splitEvery<T>(n: number, items: T[]): Array<T[]> {
   const result: Array<T[]> = []
   let idx = 0;
@@ -167,6 +169,34 @@ export function splitEvery<T>(n: number, items: T[]): Array<T[]> {
   }
   return result
 }
+
+export function createServer() {
+  const app = express()
+  app.use(express.json())
+  app.all('*', (_, __, next) => {
+    app.disable('shoutdown')
+    next()
+  })
+  return app
+}
+
+export async function startPublicServer(app: Express): Promise<{ server: Server, url: string }> {
+  const server = app.listen(config.port)
+  const url = await ngrok.connect(config.port)
+  return { server, url }
+}
+
+export async function stopPublicServer(app: Express, server: Server): Promise<void> {
+  if (app.enabled('shoutdown')) {
+    ngrok.disconnect()
+    server.close()
+    console.log('server closed')
+    process.exit(0)
+  }
+  app.enable('shoutdown')
+  setTimeout(stopPublicServer, 3000, app, server)
+}
+
 
 export function parseJSONResponse<T>(response: string): T | null {
   try {

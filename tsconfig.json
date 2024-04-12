@@ -6,6 +6,7 @@
     "sourceMap": true,
     "strictNullChecks": true,
     "forceConsistentCasingInFileNames": true,
+    "esModuleInterop": true,
     "noImplicitReturns": true,
     "noUnusedLocals": true,
     "allowJs": true
