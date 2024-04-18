@@ -1,7 +1,7 @@
 # ai_devs 2 reloaded CLI
 *by btruchel*
 ## new task handling
-- add a new task file with a handler function 
+- add a new task file with a handler function
 ```
 export async function handler(data: TaskResponseData ): Promise<Answer | void> {}
 ```

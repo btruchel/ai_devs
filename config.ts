@@ -6,6 +6,7 @@ type Config = {
     apiKey: string
     openAIapiKey: string
     renderIoApiKey: string
+    serpapiKey: string
     qdrantUrl: string
     port: string
 }
@@ -15,6 +16,7 @@ export const config: Config = {
     apiKey: process.env.apiKey || '',
     openAIapiKey: process.env.openaiApiKey || '',
     renderIoApiKey: process.env.renderIoApiKey || '',
+    serpapiKey: process.env.serpApiKey || '',
     qdrantUrl: process.env.qdrantUrl || 'http://localhost:6333',
     port: process.env.PORT || '3000'
 }

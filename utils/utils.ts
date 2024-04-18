@@ -9,6 +9,7 @@ import { Uploadable } from 'openai/uploads'
 import { FunctionDefinition } from 'openai/resources'
 import express, { Express } from "express"
 import { Server } from 'http'
+import { getJson } from "serpapi"
 const ngrok = require('ngrok')
 
 export function aiDevApiUtils() {
@@ -205,4 +206,15 @@ export function parseJSONResponse<T>(response: string): T | null {
     console.log(error)
     return null
   }
+}
+
+export async function serpGetLink(query: string): Promise<string | null> {
+  const response = await getJson({
+    engine: "google",
+    api_key: config.serpapiKey,
+    q: query,
+    location: "Poland",
+  })
+  const links = response.organic_results
+  return links ? links[0].link : null
 }
